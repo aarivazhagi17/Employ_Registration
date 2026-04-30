@@ -6,8 +6,9 @@ import "./AdminDashboard.css";
 function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [userData, setUserData] = useState(null);
+  const [users, setUsers] = useState([]);
   const [isEdit, setIsEdit] = useState(false);
+  const [editIndex, setEditIndex] = useState(null);
   const [editData, setEditData] = useState({});
 
   // Protect Page
@@ -17,26 +18,44 @@ function AdminDashboard() {
     if (!adminLogin) {
       navigate("/admin-login", { replace: true });
     } else {
-      const savedData = JSON.parse(
-        localStorage.getItem("userForm")
-      );
+      const savedUsers = JSON.parse(
+        localStorage.getItem("userForms")
+      ) || [];
 
-      setUserData(savedData || null);
-      setEditData(savedData || {});
+      setUsers(savedUsers);
     }
   }, [navigate]);
 
+  // Logout
   const logout = () => {
     localStorage.removeItem("adminLogin");
     navigate("/admin-login", { replace: true });
   };
 
-  const deleteData = () => {
-    localStorage.removeItem("userForm");
-    setUserData(null);
+  // Delete User
+  const deleteData = (index) => {
+    const updatedUsers = users.filter(
+      (_, i) => i !== index
+    );
+
+    setUsers(updatedUsers);
+
+    localStorage.setItem(
+      "userForms",
+      JSON.stringify(updatedUsers)
+    );
+
     alert("Deleted Successfully");
   };
 
+  // Edit User
+  const startEdit = (index) => {
+    setIsEdit(true);
+    setEditIndex(index);
+    setEditData(users[index]);
+  };
+
+  // Input Change
   const handleChange = (e) => {
     setEditData({
       ...editData,
@@ -44,14 +63,21 @@ function AdminDashboard() {
     });
   };
 
+  // Save Update
   const updateData = () => {
+    const updatedUsers = [...users];
+
+    updatedUsers[editIndex] = editData;
+
+    setUsers(updatedUsers);
+
     localStorage.setItem(
-      "userForm",
-      JSON.stringify(editData)
+      "userForms",
+      JSON.stringify(updatedUsers)
     );
 
-    setUserData(editData);
     setIsEdit(false);
+    setEditIndex(null);
 
     alert("Updated Successfully");
   };
@@ -61,10 +87,11 @@ function AdminDashboard() {
       <div className="adminDash-box">
 
         <h1>Admin Dashboard</h1>
-        <p>User Submitted Details</p>
+        <p>All User Submitted Details</p>
 
-        {!userData ? (
+        {users.length === 0 ? (
           <h3 className="nodata">No Data Found</h3>
+
         ) : isEdit ? (
 
           <div className="edit-box">
@@ -104,13 +131,6 @@ function AdminDashboard() {
               onChange={handleChange}
             />
 
-            <textarea
-              rows="4"
-              name="message"
-              value={editData.message}
-              onChange={handleChange}
-            ></textarea>
-
             <button onClick={updateData}>
               Save
             </button>
@@ -119,28 +139,26 @@ function AdminDashboard() {
 
         ) : (
 
-          <div className="details-box">
+          users.map((user, index) => (
+            <div className="details-box" key={index}>
 
-            <div><strong>Name:</strong> {userData.fullName}</div>
-            <div><strong>Email:</strong> {userData.email}</div>
-            <div><strong>Phone:</strong> {userData.phone}</div>
-            <div><strong>Address:</strong> {userData.address}</div>
-            <div><strong>Course:</strong> {userData.course}</div>
+              <div><strong>Name:</strong> {user.fullName}</div>
+              <div><strong>Email:</strong> {user.email}</div>
+              <div><strong>Phone:</strong> {user.phone}</div>
+              <div><strong>Address:</strong> {user.address}</div>
+              <div><strong>Course:</strong> {user.course}</div>
 
-          </div>
+              <button onClick={() => startEdit(index)}>
+                Edit
+              </button>
 
-        )}
+              <button onClick={() => deleteData(index)}>
+                Delete
+              </button>
 
-        {userData && !isEdit && (
-          <>
-            <button onClick={() => setIsEdit(true)}>
-              Edit
-            </button>
+            </div>
+          ))
 
-            <button onClick={deleteData}>
-              Delete
-            </button>
-          </>
         )}
 
         <button onClick={logout}>
