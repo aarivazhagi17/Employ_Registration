@@ -1,3 +1,4 @@
+// pages/UserAuth.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./UserAuth.css";
@@ -20,49 +21,59 @@ function UserAuth() {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const savedUser = JSON.parse(
-      localStorage.getItem("userAccount")
-    );
+  const users = JSON.parse(
+    localStorage.getItem("usersAccounts")
+  ) || [];
 
-    // Register
-    if (!isLogin) {
-      if (savedUser) {
-        alert("Already Registered. Please Login.");
-        return;
-      }
+  const validUser = users.find(
+    (item) =>
+      item.username === data.username
+  );
 
-      localStorage.setItem(
-        "userAccount",
-        JSON.stringify(data)
-      );
+  // Existing User
+  if (validUser) {
 
-      alert("Registration Successful");
-      setIsLogin(true);
+    if (validUser.password !== data.password) {
+      alert("Wrong Password");
       return;
     }
 
-    // Login
-    if (
-      savedUser &&
-      savedUser.username === data.username &&
-      savedUser.password === data.password
-    ) {
-      localStorage.setItem("userLogin", "true");
+    localStorage.setItem(
+      "userLogin",
+      "true"
+    );
 
-      const userForm = localStorage.getItem("userForm");
+    localStorage.setItem(
+      "currentUser",
+      JSON.stringify(validUser)
+    );
 
-      if (userForm) {
-        navigate("/user-dashboard");
-      } else {
-        navigate("/user-form");
-      }
+    navigate("/user-form");
+    return;
+  }
 
-    } else {
-      alert("Invalid Login");
-    }
-  };
+  // New User Auto Create
+  users.push(data);
+
+  localStorage.setItem(
+    "usersAccounts",
+    JSON.stringify(users)
+  );
+
+  localStorage.setItem(
+    "userLogin",
+    "true"
+  );
+
+  localStorage.setItem(
+    "currentUser",
+    JSON.stringify(data)
+  );
+
+  navigate("/user-form");
+};
 
   return (
     <div className="userauth-page">
@@ -71,12 +82,6 @@ function UserAuth() {
         <h1>
           {isLogin ? "User Login" : "User Register"}
         </h1>
-
-        <p>
-          {isLogin
-            ? "Login to Continue"
-            : "One Time Registration"}
-        </p>
 
         <form onSubmit={handleSubmit}>
 

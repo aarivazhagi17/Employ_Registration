@@ -5,32 +5,43 @@ import "./UserForm.css";
 function UserForm() {
   const navigate = useNavigate();
 
+  const currentUser = JSON.parse(
+    localStorage.getItem("userAccount")
+  );
+
   const [formData, setFormData] = useState({
     fullName: "",
-    email: "",
+    email: currentUser?.email || "",
     phone: "",
     address: "",
-    course: "",
+    course: ""
   });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value 
+      [e.target.name]: e.target.value
     });
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    localStorage.setItem(
-      "userForm",
-      JSON.stringify(formData)
-    );
+  const oldUsers = JSON.parse(
+    localStorage.getItem("userForms")
+  ) || [];
 
-    alert("Form Submitted Successfully");
-    navigate("/user-dashboard");
-  };
+  oldUsers.push(formData);
+
+  localStorage.setItem(
+    "userForms",
+    JSON.stringify(oldUsers)
+  );
+
+  alert("Form Submitted Successfully");
+
+  navigate("/user-dashboard");
+};
 
   return (
     <div className="userform-page">
