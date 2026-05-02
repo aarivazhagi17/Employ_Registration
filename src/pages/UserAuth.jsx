@@ -1,12 +1,9 @@
-// pages/UserAuth.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./UserAuth.css";
 
 function UserAuth() {
   const navigate = useNavigate();
-
-  const [isLogin, setIsLogin] = useState(true);
 
   const [data, setData] = useState({
     username: "",
@@ -21,67 +18,45 @@ function UserAuth() {
   };
 
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const users = JSON.parse(
-    localStorage.getItem("usersAccounts")
-  ) || [];
+    const users = JSON.parse(
+      localStorage.getItem("usersAccounts")
+    ) || [];
 
-  const validUser = users.find(
-    (item) =>
-      item.username === data.username
-  );
+    const foundUser = users.find(
+      (item) => item.username === data.username
+    );
 
-  // Existing User
-  if (validUser) {
+    if (foundUser) {
+      if (foundUser.password !== data.password) {
+        alert("Wrong Password");
+        return;
+      }
+    } else {
+      users.push(data);
 
-    if (validUser.password !== data.password) {
-      alert("Wrong Password");
-      return;
+      localStorage.setItem(
+        "usersAccounts",
+        JSON.stringify(users)
+      );
     }
 
-    localStorage.setItem(
-      "userLogin",
-      "true"
-    );
+    localStorage.setItem("userLogin", "true");
 
     localStorage.setItem(
       "currentUser",
-      JSON.stringify(validUser)
+      JSON.stringify(data)
     );
 
     navigate("/user-form");
-    return;
-  }
-
-  // New User Auto Create
-  users.push(data);
-
-  localStorage.setItem(
-    "usersAccounts",
-    JSON.stringify(users)
-  );
-
-  localStorage.setItem(
-    "userLogin",
-    "true"
-  );
-
-  localStorage.setItem(
-    "currentUser",
-    JSON.stringify(data)
-  );
-
-  navigate("/user-form");
-};
+  };
 
   return (
     <div className="userauth-page">
       <div className="userauth-box">
 
-        <h1>
-          {isLogin ? "User Login" : "User Register"}
-        </h1>
+        <h1>User Login</h1>
 
         <form onSubmit={handleSubmit}>
 
@@ -104,19 +79,10 @@ function UserAuth() {
           />
 
           <button type="submit">
-            {isLogin ? "Login" : "Register"}
+            Continue
           </button>
 
         </form>
-
-        <span
-          className="switch-link"
-          onClick={() => setIsLogin(!isLogin)}
-        >
-          {isLogin
-            ? "New User? Register"
-            : "Already Registered? Login"}
-        </span>
 
       </div>
     </div>
