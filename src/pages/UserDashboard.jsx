@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./UserDashboard.css";
+import api from "../api";
 
 function UserDashboard() {
   const navigate = useNavigate();
@@ -14,26 +15,18 @@ function UserDashboard() {
       return;
     }
 
-    const allUsers = JSON.parse(
-      localStorage.getItem("userForms")
-    ) || [];
+    loadData();
+  }, []);
 
-    if (allUsers.length === 0) {
-      navigate("/user-form");
-      return;
-    }
-
-    // show all submitted forms
-    setForms(allUsers);
-
-  }, [navigate]);
+  const loadData = async () => {
+    const res = await api.get("/all");
+    setForms(res.data);
+  };
 
   const logout = () => {
     localStorage.removeItem("userLogin");
     navigate("/", { replace: true });
   };
-
-  if (forms.length === 0) return null;
 
   return (
     <div className="userdash-page">
@@ -41,8 +34,8 @@ function UserDashboard() {
 
         <h1>User Dashboard</h1>
 
-        {forms.map((data, index) => (
-          <div className="details-box" key={index}>
+        {forms.map((data) => (
+          <div className="details-box" key={data._id}>
 
             <div>Name: {data.fullName}</div>
             <div>Email: {data.email}</div>

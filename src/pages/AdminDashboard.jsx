@@ -1,85 +1,37 @@
-// pages/AdminDashboard.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
+import api from "../api";
 
 function AdminDashboard() {
   const navigate = useNavigate();
 
   const [users, setUsers] = useState([]);
-  const [isEdit, setIsEdit] = useState(false);
-  const [editIndex, setEditIndex] = useState(null);
-  const [editData, setEditData] = useState({});
 
-  // Protect Page
   useEffect(() => {
     const adminLogin = localStorage.getItem("adminLogin");
 
     if (!adminLogin) {
       navigate("/admin-login", { replace: true });
-    } else {
-      const savedUsers = JSON.parse(
-        localStorage.getItem("userForms")
-      ) || [];
-
-      setUsers(savedUsers);
+      return;
     }
-  }, [navigate]);
 
-  // Logout
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    const res = await api.get("/all");
+    setUsers(res.data);
+  };
+
+  const deleteData = async (id) => {
+    await api.delete(`/delete/${id}`);
+    fetchUsers();
+  };
+
   const logout = () => {
     localStorage.removeItem("adminLogin");
-    navigate("/admin-login", { replace: true });
-  };
-
-  // Delete User
-  const deleteData = (index) => {
-    const updatedUsers = users.filter(
-      (_, i) => i !== index
-    );
-
-    setUsers(updatedUsers);
-
-    localStorage.setItem(
-      "userForms",
-      JSON.stringify(updatedUsers)
-    );
-
-    alert("Deleted Successfully");
-  };
-
-  // Edit User
-  const startEdit = (index) => {
-    setIsEdit(true);
-    setEditIndex(index);
-    setEditData(users[index]);
-  };
-
-  // Input Change
-  const handleChange = (e) => {
-    setEditData({
-      ...editData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  // Save Update
-  const updateData = () => {
-    const updatedUsers = [...users];
-
-    updatedUsers[editIndex] = editData;
-
-    setUsers(updatedUsers);
-
-    localStorage.setItem(
-      "userForms",
-      JSON.stringify(updatedUsers)
-    );
-
-    setIsEdit(false);
-    setEditIndex(null);
-
-    alert("Updated Successfully");
+    navigate("/", { replace: true });
   };
 
   return (
@@ -87,79 +39,26 @@ function AdminDashboard() {
       <div className="adminDash-box">
 
         <h1>Admin Dashboard</h1>
-        <p>All User Submitted Details</p>
 
-        {users.length === 0 ? (
-          <h3 className="nodata">No Data Found</h3>
+        {users.map((user) => (
+          <div className="details-box" key={user._id}>
 
-        ) : isEdit ? (
+            <div>Name: {user.fullName}</div>
+            <div>Email: {user.email}</div>
+            <div>Phone: {user.phone}</div>
+            <div>Address: {user.address}</div>
+            <div>Course: {user.course}</div>
 
-          <div className="edit-box">
-
-            <input
-              type="text"
-              name="fullName"
-              value={editData.fullName}
-              onChange={handleChange}
-            />
-
-            <input
-              type="email"
-              name="email"
-              value={editData.email}
-              onChange={handleChange}
-            />
-
-            <input
-              type="text"
-              name="phone"
-              value={editData.phone}
-              onChange={handleChange}
-            />
-
-            <input
-              type="text"
-              name="address"
-              value={editData.address}
-              onChange={handleChange}
-            />
-
-            <input
-              type="text"
-              name="course"
-              value={editData.course}
-              onChange={handleChange}
-            />
-
-            <button onClick={updateData}>
-              Save
+            <button
+              onClick={() =>
+                deleteData(user._id)
+              }
+            >
+              Delete
             </button>
 
           </div>
-
-        ) : (
-
-          users.map((user, index) => (
-            <div className="details-box" key={index}>
-
-              <div><strong>Name:</strong> {user.fullName}</div>
-              <div><strong>Email:</strong> {user.email}</div>
-              <div><strong>Phone:</strong> {user.phone}</div>
-              <div><strong>Address:</strong> {user.address}</div>
-              <div><strong>Course:</strong> {user.course}</div>
-
-              <button onClick={() => startEdit(index)}>
-                Edit
-              </button>
-
-              <button onClick={() => deleteData(index)}>
-                Delete
-              </button>
-
-            </div>
-          ))
-
-        )}
+        ))}
 
         <button onClick={logout}>
           Logout

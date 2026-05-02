@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./UserForm.css";
+import api from "../api";
 
 function UserForm() {
   const navigate = useNavigate();
@@ -24,24 +25,20 @@ function UserForm() {
     });
   };
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const oldUsers = JSON.parse(
-    localStorage.getItem("userForms")
-  ) || [];
+    try {
+      await api.post("/submit", formData);
 
-  oldUsers.push(formData);
+      alert("Form Submitted Successfully");
 
-  localStorage.setItem(
-    "userForms",
-    JSON.stringify(oldUsers)
-  );
+      navigate("/user-dashboard");
 
-  alert("Form Submitted Successfully");
-
-  navigate("/user-dashboard");
-};
+    } catch (error) {
+      alert("Submit Failed");
+    }
+  };
 
   return (
     <div className="userform-page">
