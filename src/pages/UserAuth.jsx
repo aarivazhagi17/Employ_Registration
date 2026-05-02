@@ -1,14 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./UserAuth.css";
 
 function UserAuth() {
   const navigate = useNavigate();
 
+  const [isRegister, setIsRegister] = useState(false);
+
   const [data, setData] = useState({
     username: "",
     password: ""
   });
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem(
+      "userAccount"
+    );
+
+    if (!savedUser) {
+      setIsRegister(true); // first time
+    }
+  }, []);
 
   const handleChange = (e) => {
     setData({
@@ -20,43 +32,55 @@ function UserAuth() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const users = JSON.parse(
-      localStorage.getItem("usersAccounts")
-    ) || [];
-
-    const foundUser = users.find(
-      (item) => item.username === data.username
+    const savedUser = JSON.parse(
+      localStorage.getItem("userAccount")
     );
 
-    if (foundUser) {
-      if (foundUser.password !== data.password) {
-        alert("Wrong Password");
-        return;
-      }
-    } else {
-      users.push(data);
-
+    // Register
+    if (isRegister) {
       localStorage.setItem(
-        "usersAccounts",
-        JSON.stringify(users)
+        "userAccount",
+        JSON.stringify(data)
       );
+
+      alert("Registered Successfully");
+
+      setIsRegister(false);
+      setData({
+        username: "",
+        password: ""
+      });
+
+      return;
     }
 
-    localStorage.setItem("userLogin", "true");
+    // Login
+    if (
+      savedUser &&
+      savedUser.username === data.username &&
+      savedUser.password === data.password
+    ) {
+      localStorage.setItem(
+        "userLogin",
+        "true"
+      );
 
-    localStorage.setItem(
-      "currentUser",
-      JSON.stringify(data)
-    );
+      navigate("/user-form");
 
-    navigate("/user-form");
+    } else {
+      alert("Invalid Login");
+    }
   };
 
   return (
     <div className="userauth-page">
       <div className="userauth-box">
 
-        <h1>User Login</h1>
+        <h1>
+          {isRegister
+            ? "User Register"
+            : "User Login"}
+        </h1>
 
         <form onSubmit={handleSubmit}>
 
@@ -79,7 +103,9 @@ function UserAuth() {
           />
 
           <button type="submit">
-            Continue
+            {isRegister
+              ? "Register"
+              : "Login"}
           </button>
 
         </form>
